@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from .task import Task
 from .invocation_chain import EMPTY, InvocationChain
 
@@ -6,10 +8,10 @@ class TaskManage(object):
         self.tasks = {}
 
     def add(self, task):
-        pass
+        self.tasks[task.name] = task
 
     def remove(self, task):
-        pass
+        self.tasks.pop(task.name)
 
     def invoke(self, task):
         self.invoke_with_call_chain(EMPTY)
@@ -21,13 +23,15 @@ class TaskManage(object):
         if task.invoked:
             return
 
-        new_chain = chain.append(task)
-
-        for d in task.depends:
-            self.invoke_with_call_chain(task, new_chain)
+        self.invoke_depends(task)
 
         if task.needed:
             task()
+
+    def invoke_depends(self, task):
+        new_chain = chain.append(task)
+        for d in task.depends:
+            self.invoke_with_call_chain(task, new_chain)
 
     def find(self, name):
         return self.tasks[name]

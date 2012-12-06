@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 class InvocationChain(object):
+    """
+    专门用来检测循环依赖的类，由于层级不会太高，所以不考虑效率问题.
+    """
     def __init__(self, value, tail):
         self.value = value
         self.tail = tail
