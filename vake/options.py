@@ -1,4 +1,39 @@
 
+class Parser(object):
+    def define(self):
+        pass
+
+    def parse(self):
+        pass
+
+class ParserAction(object):
+    def __init__(self, parser):
+        pass
+
+    def store(self):
+        pass
+
+    def store_const(self):
+        pass
+
+    def store_true(self):
+        pass
+
+    def store_false(self):
+        pass
+
+    def append(self):
+        pass
+
+    def append_const(self):
+        pass
+
+    def callback(self):
+        pass
+
+    def help(self):
+        pass
+
 class Options(dict):
     def __getattr__(self, name):
         val = self.get(name)
