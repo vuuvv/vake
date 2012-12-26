@@ -18,7 +18,7 @@ class Application(object):
         self.arg_parser = self._create_arg_parser()
         self.subparser = None
         self.argv = sys.argv[1:]
-        self.args = None
+        self.options = None
 
     def _create_arg_parser(self):
         parser = argparse.ArgumentParser(
@@ -38,11 +38,11 @@ class Application(object):
 
         fake_action = parser.add_argument(
             'target', type=str, nargs='?', default=None)
-        self.args, self.argv = parser.parse_known_args(self.argv)
-        args = self.args
-        target = self.args.target
-        del self.args.target
-        log.set_verbosity(args.verbose)
+        self.options, self.argv = parser.parse_known_args(self.argv)
+        options = self.options
+        target = self.options.target
+        del self.options.target
+        log.set_verbosity(options.verbose)
         parser._remove_action(fake_action)
 
         parser.add_argument(
@@ -50,12 +50,30 @@ class Application(object):
             help='show this help message and exit')
         if target is None:
             # consume the 'help' argument
-            self.args, self.argv = parser.parse_known_args(self.argv, self.args)
+            self.options, self.argv = parser.parse_known_args(self.argv, self.options)
         self.subparser = parser.add_subparsers(help="target help", dest="target")
 
-        self.load(args.file, target=target)
+        self.load(options.file, target=target)
 
-    def print_help(self):
+    def main(self):
+        parser = self.arg_parser
+        # parse options --file and verbos
+        self.options, self.argv = parser.parse_known_args(self.argv)
+        log.set_verbosity(self.options.verbose)
+        parser.add_argument(
+            '-h', '--help', action='help', default=argparse.SUPPRESS,
+            help='show this help message and exit')
+        self.subparser = parser.add_subparsers(help='target help', dest='target')
+
+        file = self.options.file
+        if file is None:
+            if ospath.isfile('vakefile.py'):
+                file = 'vakefile.py'
+            else:
+                self.print_help_and_exit()
+        self.load(self.options.file)
+
+    def print_help_and_exit(self):
         self.arg_parser.print_help()
         self.arg_parser.exit()
 
@@ -65,7 +83,14 @@ class Application(object):
     def invoke_task(self, task):
         self.manage.invoke(task)
 
-    def load(self, vakefile, target=None):
+    def load(self, vakefile):
+		if len(self.argv) == 0:
+			target = self.manage.default
+			if target is None:
+				self.print_help_and_exit()
+		else:
+			options, argv = self.arg_parser.parse_known_args(self.argv, self.options)
+			target = options.target
         path = ospath.abspath(vakefile)
         if not ospath.exists(path):
             raise VakeFileNotExist("Vake file '%s' is not exists" % path)
